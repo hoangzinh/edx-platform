@@ -38,6 +38,7 @@ function($, Backbone, _, gettext, BaseView, BaseModal, XBlockInfoModel, MoveXBlo
             BaseModal.prototype.initialize.call(this);
             this.listenTo(Backbone, 'move:breadcrumbRendered', this.focusModal);
             this.sourceXBlockInfo = this.options.sourceXBlockInfo;
+            this.sourceParentXBlockInfo = this.options.sourceParentXBlockInfo;
             this.XBlockURLRoot = this.options.XBlockURLRoot;
             this.XBlockAncestorInfoURL = StringUtils.interpolate(
                 '{urlRoot}/{usageId}?fields=ancestorInfo',
@@ -52,6 +53,8 @@ function($, Backbone, _, gettext, BaseView, BaseModal, XBlockInfoModel, MoveXBlo
             });
             this.targetParentXBlockInfo = null;
             this.movedAlertView = null;
+            this.moveXBlockBreadcrumbView = null;
+            this.moveXBlockListView = null;
         },
 
         getTitle: function() {
@@ -67,6 +70,7 @@ function($, Backbone, _, gettext, BaseView, BaseModal, XBlockInfoModel, MoveXBlo
 
         show: function() {
             BaseModal.prototype.show.apply(this, [false]);
+            MovedAlertView.prototype.inFocus.apply(this, [this.options.modalWindowClass]);
         },
 
         hide: function() {
@@ -77,7 +81,7 @@ function($, Backbone, _, gettext, BaseView, BaseModal, XBlockInfoModel, MoveXBlo
                 this.moveXBlockBreadcrumbView.remove();
             }
             BaseModal.prototype.hide.apply(this);
-            Feedback.prototype.outFocus.apply(this);
+            MovedAlertView.prototype.outFocus.apply(this);
         },
 
         focusModal: function() {
@@ -139,7 +143,7 @@ function($, Backbone, _, gettext, BaseView, BaseModal, XBlockInfoModel, MoveXBlo
 
         moveXBlock: function() {
             var self = this;
-            XBlockViewUtils.moveXBlock(self.sourceXBlockInfo.id, self.targetParentXBlockInfo.id)
+            XBlockViewUtils.moveXBlock(self.sourceXBlockInfo.id, self.moveXBlockListView.parent_info.parent.id)
                 .done(function(response) {
                     if (response.move_source_locator) {
                         // hide modal
