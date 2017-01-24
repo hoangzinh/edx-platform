@@ -56,6 +56,7 @@ function($, Backbone, _, gettext, BaseView, BaseModal, XBlockInfoModel, MoveXBlo
             this.movedAlertView = null;
             this.moveXBlockBreadcrumbView = null;
             this.moveXBlockListView = null;
+            this.listenTo(Backbone, 'move:validateMoveOperation', this.validateMoveOperation);
         },
 
         getTitle: function() {
@@ -72,6 +73,7 @@ function($, Backbone, _, gettext, BaseView, BaseModal, XBlockInfoModel, MoveXBlo
         show: function() {
             BaseModal.prototype.show.apply(this, [false]);
             Feedback.prototype.inFocus.apply(this, [this.options.modalWindowClass]);
+            this.enableMoveOperation(false);
         },
 
         hide: function() {
@@ -120,6 +122,26 @@ function($, Backbone, _, gettext, BaseView, BaseModal, XBlockInfoModel, MoveXBlo
                     ancestorInfo: ancestorInfo
                 }
             );
+        },
+
+        enableMoveOperation: function (isValidMove) {
+            var $moveButton = this.$el.find('.action-move');
+            if (isValidMove){
+                $moveButton.removeClass('is-disabled');
+            } else {
+                $moveButton.addClass('is-disabled');
+            }
+        },
+
+        validateMoveOperation: function (targetParentXBlockInfo) {
+            var isValidMove = false,
+                sourceParentType = this.sourceParentXBlockInfo.get('category'),
+                targetParentType = targetParentXBlockInfo.get('category');
+
+            if (targetParentType == sourceParentType && this.sourceParentXBlockInfo.id != targetParentXBlockInfo.id) {
+                isValidMove = true;
+            }
+            this.enableMoveOperation(isValidMove);
         },
 
         moveXBlock: function() {
