@@ -40,6 +40,7 @@ function($, Backbone, _, gettext, BaseView, BaseModal, XBlockInfoModel, MoveXBlo
             this.listenTo(Backbone, 'move:breadcrumbRendered', this.focusModal);
             this.sourceXBlockInfo = this.options.sourceXBlockInfo;
             this.sourceParentXBlockInfo = this.options.sourceParentXBlockInfo;
+            this.targetParentXBlockInfo = null;
             this.XBlockURLRoot = this.options.XBlockURLRoot;
             this.XBlockAncestorInfoURL = StringUtils.interpolate(
                 '{urlRoot}/{usageId}?fields=ancestorInfo',
@@ -52,7 +53,6 @@ function($, Backbone, _, gettext, BaseView, BaseModal, XBlockInfoModel, MoveXBlo
                 $('.breadcrumb-container').removeClass('is-hidden');
                 self.renderViews(courseOutlineInfo, ancestorInfo);
             });
-            this.targetParentXBlockInfo = null;
             this.movedAlertView = null;
             this.moveXBlockBreadcrumbView = null;
             this.moveXBlockListView = null;
@@ -124,29 +124,30 @@ function($, Backbone, _, gettext, BaseView, BaseModal, XBlockInfoModel, MoveXBlo
             );
         },
 
-        enableMoveOperation: function (isValidMove) {
+        enableMoveOperation: function(isValidMove) {
             var $moveButton = this.$el.find('.action-move');
-            if (isValidMove){
+            if (isValidMove) {
                 $moveButton.removeClass('is-disabled');
             } else {
                 $moveButton.addClass('is-disabled');
             }
         },
 
-        validateMoveOperation: function (targetParentXBlockInfo) {
+        validateMoveOperation: function(targetParentXBlockInfo) {
             var isValidMove = false,
                 sourceParentType = this.sourceParentXBlockInfo.get('category'),
                 targetParentType = targetParentXBlockInfo.get('category');
 
-            if (targetParentType == sourceParentType && this.sourceParentXBlockInfo.id != targetParentXBlockInfo.id) {
+            if (targetParentType === sourceParentType && this.sourceParentXBlockInfo.id !== targetParentXBlockInfo.id) {
                 isValidMove = true;
+                this.targetParentXBlockInfo = targetParentXBlockInfo;
             }
             this.enableMoveOperation(isValidMove);
         },
 
         moveXBlock: function() {
             var self = this;
-            XBlockViewUtils.moveXBlock(self.sourceXBlockInfo.id, self.moveXBlockListView.parent_info.parent.id)
+            XBlockViewUtils.moveXBlock(self.sourceXBlockInfo.id, self.targetParentXBlockInfo.id)
                 .done(function(response) {
                     if (response.move_source_locator) {
                         // hide modal
