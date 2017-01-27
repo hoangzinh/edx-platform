@@ -25,9 +25,10 @@ class TestGetPrograms(mixins.CatalogIntegrationMixin, TestCase):
         self.user = UserFactory()
         self.uuid = str(uuid.uuid4())
         self.type = 'FooBar'
+        self.status = 'active'
         self.catalog_integration = self.create_catalog_integration(cache_ttl=1)
 
-    def assert_contract(self, call_args, program_uuid=None, type=None):  # pylint: disable=redefined-builtin
+    def assert_contract(self, call_args, program_uuid=None, type=None, status=None):  # pylint: disable=redefined-builtin
         """Verify that API data retrieval utility is used correctly."""
         args, kwargs = call_args
 
@@ -36,9 +37,11 @@ class TestGetPrograms(mixins.CatalogIntegrationMixin, TestCase):
 
         self.assertEqual(kwargs['resource_id'], program_uuid)
 
-        cache_key = '{base}.programs{type}'.format(
+        cache_key = '{base}.programs{type}{status}{full_course_serializer}'.format(
             base=self.catalog_integration.CACHE_KEY,
-            type='.' + type if type else ''
+            type='.' + type if type else '',
+            status='.' + status if status else '',
+            full_course_serializer='.' + 'full_course_serializer' if program_uuid else '',
         )
         self.assertEqual(
             kwargs['cache_key'],
@@ -53,6 +56,10 @@ class TestGetPrograms(mixins.CatalogIntegrationMixin, TestCase):
         }
         if type:
             querystring['type'] = type
+        if status:
+            querystring['status'] = status
+        if program_uuid:
+            querystring['use_full_course_serializer'] = True
         self.assertEqual(kwargs['querystring'], querystring)
 
         return args, kwargs
@@ -105,7 +112,7 @@ class TestGetPrograms(mixins.CatalogIntegrationMixin, TestCase):
         # This should not return programs.
         self.assertEqual(data, [])
 
-    def test_get_programs_data(self, _mock_cache, mock_get_catalog_data):   # pylint: disable=unused-argument
+    def test_get_active_programs_list(self, _mock_cache, mock_get_catalog_data):   # pylint: disable=unused-argument
         programs = []
         program_types = []
         programs_data = []
@@ -130,7 +137,7 @@ class TestGetPrograms(mixins.CatalogIntegrationMixin, TestCase):
                 patched_get_programs.return_value = programs
                 patched_get_program_types.return_value = program_types
 
-                programs_data = utils.get_programs_data()
+                programs_data = utils.get_active_programs_list()
                 self.assertEqual(programs_data, programs)
 
     def test_get_one_program(self, _mock_cache, mock_get_catalog_data):
@@ -149,6 +156,15 @@ class TestGetPrograms(mixins.CatalogIntegrationMixin, TestCase):
         data = utils.get_programs(self.user, type=self.type)
 
         self.assert_contract(mock_get_catalog_data.call_args, type=self.type)
+        self.assertEqual(data, programs)
+
+    def test_get_programs_by_status(self, _mock_cache, mock_get_catalog_data):
+        programs = [factories.Program() for __ in range(2)]
+        mock_get_catalog_data.return_value = programs
+
+        data = utils.get_programs(self.user, status=self.status)
+
+        self.assert_contract(mock_get_catalog_data.call_args, status=self.status)
         self.assertEqual(data, programs)
 
     def test_programs_unavailable(self, _mock_cache, mock_get_catalog_data):
