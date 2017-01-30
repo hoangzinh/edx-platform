@@ -63,7 +63,7 @@ function($, Backbone, _, gettext, HtmlUtils, StringUtils, XBlockUtils, MoveXBloc
                 )
             );
             Backbone.trigger('move:childrenRendered', this.breadcrumbInfo());
-            Backbone.trigger('move:validateMoveOperation', this.parent_info.parent);
+            Backbone.trigger('move:enableMoveOperation', this.parentInfo.parent);
             return this;
         },
 
@@ -119,9 +119,12 @@ function($, Backbone, _, gettext, HtmlUtils, StringUtils, XBlockUtils, MoveXBloc
             this.render();
         },
 
+<<<<<<< HEAD
         /**
          * Set parent and child XBlock categories.
          */
+=======
+>>>>>>> 075ea9b... refactoring tests
         setDisplayedXBlocksCategories: function() {
             this.parentInfo.category = XBlockUtils.getXBlockType(
                 this.parentInfo.parent.get('category'),

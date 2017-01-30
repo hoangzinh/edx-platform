@@ -1,8 +1,8 @@
 define(['jquery', 'underscore', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpers',
-        'common/js/spec_helpers/template_helpers', 'js/views/move_xblock_list',
-        'js/views/move_xblock_breadcrumb', 'js/models/xblock_info'],
-    function($, _, AjaxHelpers, TemplateHelpers, MoveXBlockListView, MoveXBlockBreadcrumbView,
-             XBlockInfoModel) {
+        'common/js/spec_helpers/template_helpers', 'common/js/spec_helpers/view_helpers',
+        'js/views/modals/move_xblock_modal', 'edx-ui-toolkit/js/utils/html-utils',
+        'edx-ui-toolkit/js/utils/string-utils', 'js/models/xblock_info'],
+    function($, _, AjaxHelpers, TemplateHelpers, ViewHelpers, MoveXBlockModal, HtmlUtils, StringUtils, XBlockInfo) {
         'use strict';
         describe('MoveXBlock', function() {
             var renderViews, createXBlockInfo, createCourseOutline, moveXBlockBreadcrumbView,
@@ -10,7 +10,17 @@ define(['jquery', 'underscore', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpe
                 verifyBreadcrumbViewInfo, verifyListViewInfo, getDisplayedInfo, clickForwardButton,
                 clickBreadcrumbButton, verifyXBlockInfo, nextCategory;
 
+<<<<<<< HEAD
             parentChildMap = {
+=======
+            var modal,
+                showModal,
+                sourceDisplayName = 'HTML 101',
+                sourceLocator = 'source-xblock-locator',
+                sourceParentLocator = 'source-parent-xblock-locator';
+
+            parentToChildMap = {
+>>>>>>> 075ea9b... refactoring tests
                 course: 'section',
                 section: 'subsection',
                 subsection: 'unit',
@@ -25,20 +35,19 @@ define(['jquery', 'underscore', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpe
             };
 
             beforeEach(function() {
-                setFixtures(
-                    "<div class='breadcrumb-container'></div><div class='xblock-list-container'></div>"
-                );
                 TemplateHelpers.installTemplates([
-                    'move-xblock-list',
-                    'move-xblock-breadcrumb'
+                    'basic-modal',
+                    'modal-button',
+                    'move-xblock-modal'
                 ]);
+                showModal();
             });
 
             afterEach(function() {
-                moveXBlockBreadcrumbView.remove();
-                moveXBlockListView.remove();
+                modal.hide();
             });
 
+<<<<<<< HEAD
             /**
              * Create child XBlock info.
              *
@@ -54,6 +63,34 @@ define(['jquery', 'underscore', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpe
                     id: category + '_ID'
                 };
                 return createXBlockInfo(parentChildMap[category], outlineOptions, childInfo);
+=======
+            showModal = function() {
+                modal = new MoveXBlockModal({
+                    sourceXBlockInfo: new XBlockInfo({
+                        id: sourceLocator,
+                        display_name: sourceDisplayName,
+                        category: 'html'
+                    }),
+                    sourceParentXBlockInfo: new XBlockInfo({
+                        id: sourceParentLocator,
+                        display_name: 'VERT 101',
+                        category: 'vertical'
+                    }),
+                    XBlockUrlRoot: '/xblock'
+                });
+                modal.show();
+            };
+
+            createChildXBlockInfo = function(category, options, xblockIndex) {
+                var cInfo =
+                    {
+                        category: categoryMap[category],
+                        display_name: category + '_display_name_' + xblockIndex,
+                        id: category + '_ID'
+                    };
+
+                return createXBlockInfo(parentToChildMap[category], options, cInfo);
+>>>>>>> 075ea9b... refactoring tests
             };
 
             /**
@@ -101,6 +138,7 @@ define(['jquery', 'underscore', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpe
                 return createXBlockInfo('section', outlineOptions, courseOutline);
             };
 
+<<<<<<< HEAD
             /**
              * Render breadcrumb and XBlock list view.
              *
@@ -115,6 +153,11 @@ define(['jquery', 'underscore', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpe
                         ancestorInfo: ancestorInfo || {ancestors: []}
                     }
                 );
+=======
+            renderViews = function(courseOutlineJson, ancestorInfo) {
+                var ancestorInfo = ancestorInfo || {ancestors: []};
+                modal.renderViews(courseOutlineJson, ancestorInfo);
+>>>>>>> 075ea9b... refactoring tests
             };
 
             /**
@@ -123,7 +166,7 @@ define(['jquery', 'underscore', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpe
              * @returns {Object}
              */
             getDisplayedInfo = function() {
-                var viewEl = moveXBlockListView.$el;
+                var viewEl = modal.moveXBlockListView.$el;
                 return {
                     categoryText: viewEl.find('.category-text').text().trim(),
                     currentLocationText: viewEl.find('.current-location').text().trim(),
@@ -147,7 +190,7 @@ define(['jquery', 'underscore', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpe
              */
             verifyListViewInfo = function(category, expectedXBlocksCount, hasCurrentLocation) {
                 var displayedInfo = getDisplayedInfo();
-                expect(displayedInfo.categoryText).toEqual(moveXBlockListView.categoriesText[category] + ':');
+                expect(displayedInfo.categoryText).toEqual(modal.moveXBlockListView.categoriesText[category] + ':');
                 expect(displayedInfo.xblockCount).toEqual(expectedXBlocksCount);
                 expect(displayedInfo.xblockDisplayNames).toEqual(
                     _.map(_.range(expectedXBlocksCount), function(xblockIndex) {
@@ -174,7 +217,7 @@ define(['jquery', 'underscore', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpe
              * @param {any} xblockIndex     XBlock index
              */
             verifyBreadcrumbViewInfo = function(category, xblockIndex) {
-                var displayedBreadcrumbs = moveXBlockBreadcrumbView.$el.find('.breadcrumbs .bc-container').map(
+                var displayedBreadcrumbs = modal.moveXBlockBreadcrumbView.$el.find('.breadcrumbs .bc-container').map(
                     function() { return $(this).text().trim(); }
                 ).get(),
                     categories = _.keys(parentChildMap).concat(['component']),
@@ -195,7 +238,7 @@ define(['jquery', 'underscore', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpe
              */
             clickForwardButton = function(buttonIndex) {
                 buttonIndex = buttonIndex || 0;  // eslint-disable-line no-param-reassign
-                moveXBlockListView.$el.find('[data-item-index="' + buttonIndex + '"] button').click();
+                modal.moveXBlockListView.$el.find('[data-item-index="' + buttonIndex + '"] button').click();
             };
 
             /**
@@ -268,7 +311,7 @@ define(['jquery', 'underscore', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpe
                 _.each(['component', 'unit', 'subsection', 'section'], function(category) {
                     verifyListViewInfo(category, 1);
                     if (category !== 'section') {
-                        moveXBlockBreadcrumbView.$el.find('.bc-container button').last().click();
+                        modal.moveXBlockBreadcrumbView.$el.find('.bc-container button').last().click();
                     }
                 });
             });
@@ -304,7 +347,7 @@ define(['jquery', 'underscore', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpe
                 renderViews(outline, ancestorInfo);
                 verifyXBlockInfo(outlineOptions, 'section', 0, 'forward', true);
                 // click the outline breadcrumb to render sections
-                moveXBlockBreadcrumbView.$el.find('.bc-container button').first().click();
+                modal.moveXBlockBreadcrumbView.$el.find('.bc-container button').first().click();
                 verifyXBlockInfo(outlineOptions, 'section', 1, 'forward', false);
             });
 
@@ -336,9 +379,221 @@ define(['jquery', 'underscore', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpe
                     _.each(_.range(info.forwardClicks), function() {
                         clickForwardButton();
                     });
-                    expect(moveXBlockListView.$el.find('.xblock-no-child-message').text().trim()).toEqual(info.message);
-                    moveXBlockListView.undelegateEvents();
-                    moveXBlockBreadcrumbView.undelegateEvents();
+                    expect(modal.moveXBlockListView.$el.find('.xblock-no-child-message').text().trim()).toEqual(info.message);
+                    modal.moveXBlockListView.undelegateEvents();
+                    modal.moveXBlockBreadcrumbView.undelegateEvents();
+                });
+            });
+
+            describe('Move an xblock', function(){
+                var courseOutline,
+                    verifyNotificationStatus,
+                    isMoveEnabled,
+                    selectTargetParent,
+                    getConfirmationFeedbackTitle,
+                    getUndoConfirmationFeedbackTitle,
+                    getConfirmationFeedbackTitleHtml,
+                    getConfirmationFeedbackMessageHtml,
+                    sendMoveXBlockRequest,
+                    moveXBlockWithSuccess;
+
+                beforeEach(function() {
+                    //var tpl = readFixtures('common/templates/components/system-feedback.underscore');
+                    //setFixtures(sandbox({
+                    //id: 'page-alert'
+                    //}));
+                    //appendSetFixtures($('<script>', {
+                    //id: 'system-feedback-tpl',
+                    //type: 'text/template'
+                    //}).text(tpl));
+                    courseOutline = createCourseOutline({section: 1, subsection: 1, unit: 1, component: 1});
+                });
+
+                afterEach(function() {
+                    courseOutline = null;
+                });
+
+                isMoveEnabled = function() {
+                    return !modal.$el.find('.modal-actions .action-move').hasClass('is-disabled');
+                };
+
+                selectTargetParent = function(parentLocator) {
+                    modal.targetParentXBlockInfo = {
+                        id: parentLocator
+                    };
+                };
+
+                getConfirmationFeedbackTitle = function(displayName) {
+                    return StringUtils.interpolate(
+                        'Success! "{displayName}" has been moved.',
+                        {
+                            displayName: displayName
+                        }
+                    );
+                };
+
+                getUndoConfirmationFeedbackTitle = function(displayName) {
+                    return StringUtils.interpolate(
+                        'Move cancelled. "{sourceDisplayName}" has been moved back to its original location.',
+                        {
+                            sourceDisplayName: displayName
+                        }
+                    );
+                };
+
+                getConfirmationFeedbackTitleHtml = function(parentLocator) {
+                    return StringUtils.interpolate(
+                        '{link_start}Take me to the new location{link_end}',
+                        {
+                            link_start: HtmlUtils.HTML('<a href="/container/' + parentLocator + '">'),
+                            link_end: HtmlUtils.HTML('</a>')
+                        }
+                    );
+                };
+
+                getConfirmationFeedbackMessageHtml = function(displayName, locator, parentLocator, sourceIndex) {
+                    return HtmlUtils.interpolateHtml(
+                        HtmlUtils.HTML(
+                            '<a class="action-undo-move" href="#" data-source-display-name="{displayName}" ' +
+                            'data-source-locator="{sourceLocator}" data-source-parent-locator="{parentSourceLocator}" ' +
+                            'data-target-index="{targetIndex}">{undoMove}</a>'),
+                        {
+                            displayName: displayName,
+                            sourceLocator: locator,
+                            parentSourceLocator: parentLocator,
+                            targetIndex: sourceIndex,
+                            undoMove: gettext('Undo move')
+                        }
+                    );
+                };
+
+                verifyNotificationStatus = function(requests, notificationSpy, notificationText, sourceIndex) {
+                    var sourceIndex = sourceIndex || 0;  // eslint-disable-line no-redeclare
+                    ViewHelpers.verifyNotificationShowing(notificationSpy, notificationText);
+                    AjaxHelpers.respondWithJson(requests, {
+                        move_source_locator: sourceLocator,
+                        parent_locator: sourceParentLocator,
+                        target_index: sourceIndex
+                    });
+                    ViewHelpers.verifyNotificationHidden(notificationSpy);
+                };
+
+                sendMoveXBlockRequest = function(requests, xblockLocator, targetIndex, sourceIndex) {
+                    var responseData,
+                        expectedData,
+                        sourceIndex = sourceIndex || 0; // eslint-disable-line no-redeclare
+
+                    // select a target item and click
+                    renderViews(courseOutline);
+                    _.each(_.range(3), function() {
+                        clickForwardButton(0);
+                    });
+
+                    modal.$el.find('.modal-actions .action-move').click();
+
+                    responseData = expectedData = {
+                        move_source_locator: xblockLocator,
+                        parent_locator: modal.targetParentXBlockInfo.id
+                    };
+
+                    if (targetIndex !== undefined) {
+                        expectedData = _.extend(expectedData, {
+                            targetIndex: targetIndex
+                        });
+                    }
+
+                    // verify content of request
+                    AjaxHelpers.expectJsonRequest(requests, 'PATCH', '/xblock/', expectedData);
+
+                    // send the response
+                    AjaxHelpers.respondWithJson(requests, _.extend(responseData, {
+                        source_index: sourceIndex
+                    }));
+                };
+
+                moveXBlockWithSuccess = function(requests) {
+                    var sourceIndex = 0;
+                    sendMoveXBlockRequest(requests, sourceLocator);
+                    expect(modal.movedAlertView).toBeDefined();
+                    expect(modal.movedAlertView.options.title).toEqual(getConfirmationFeedbackTitle(sourceDisplayName));
+                    expect(modal.movedAlertView.options.titleHtml).toEqual(
+                        getConfirmationFeedbackTitleHtml(modal.targetParentXBlockInfo.id)
+                    );
+                    expect(modal.movedAlertView.options.messageHtml).toEqual(
+                        getConfirmationFeedbackMessageHtml(
+                            sourceDisplayName,
+                            sourceLocator,
+                            sourceParentLocator,
+                            sourceIndex
+                        )
+                    );
+                };
+
+                it('move button is disabled by default', function() {
+                    expect(isMoveEnabled(0)).toBeFalsy();
+                });
+
+                it('can not move is in a disabled state', function() {
+                    var requests = AjaxHelpers.requests(this);
+                    expect(isMoveEnabled(0)).toBeFalsy();
+                    modal.$el.find('.modal-actions .action-move').click();
+                    expect(modal.movedAlertView).toBeNull();
+                });
+
+                it('moves an xblock when move button is clicked', function() {
+                    var requests = AjaxHelpers.requests(this);
+                    moveXBlockWithSuccess(requests);
+                });
+
+                it('undo move an xblock when undo move button is clicked', function() {
+                    var sourceIndex = 0,
+                        requests = AjaxHelpers.requests(this);
+                    moveXBlockWithSuccess(requests);
+                    modal.movedAlertView.undoMoveXBlock({
+                        target: $(modal.movedAlertView.options.messageHtml.text)
+                    });
+                    AjaxHelpers.respondWithJson(requests, {
+                        move_source_locator: sourceLocator,
+                        parent_locator: sourceParentLocator,
+                        target_index: sourceIndex
+                    });
+                    expect(modal.movedAlertView.movedAlertView.options.title).toEqual(
+                        getUndoConfirmationFeedbackTitle(sourceDisplayName)
+                    );
+                });
+
+                it('does not move an xblock when cancel button is clicked', function() {
+                    var sourceIndex = 0;
+                    // select a target item and click
+                    renderViews(courseOutline);
+                    _.each(_.range(3), function() {
+                        clickForwardButton(0);
+                    });
+                    modal.$el.find('.modal-actions .action-cancel').click();
+                    expect(modal.movedAlertView).toBeNull();
+                });
+
+                it('shows a notification when moving', function() {
+                    var requests = AjaxHelpers.requests(this),
+                        notificationSpy = ViewHelpers.createNotificationSpy();
+                    // select a target item and click
+                    renderViews(courseOutline);
+                    _.each(_.range(3), function() {
+                        clickForwardButton(0);
+                    });
+                    modal.$el.find('.modal-actions .action-move').click();
+                    verifyNotificationStatus(requests, notificationSpy, 'Moving');
+                });
+
+                it('shows a notification when undo moving', function() {
+                    var notificationSpy,
+                        requests = AjaxHelpers.requests(this);
+                    moveXBlockWithSuccess(requests);
+                    notificationSpy = ViewHelpers.createNotificationSpy();
+                    modal.movedAlertView.undoMoveXBlock({
+                        target: $(modal.movedAlertView.options.messageHtml.text)
+                    });
+                    verifyNotificationStatus(requests, notificationSpy, 'Undo moving');
                 });
             });
         });

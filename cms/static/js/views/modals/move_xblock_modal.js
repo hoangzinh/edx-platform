@@ -17,8 +17,6 @@ function($, Backbone, _, gettext, BaseView, BaseModal, XBlockInfoModel, MoveXBlo
     'use strict';
 
     var MoveXblockModal = BaseModal.extend({
-        modalSRTitle: gettext('Choose a location to move your component to'),
-
         events: _.extend({}, BaseModal.prototype.events, {
             'click .action-move': 'moveXBlock'
         }),
@@ -56,7 +54,8 @@ function($, Backbone, _, gettext, BaseView, BaseModal, XBlockInfoModel, MoveXBlo
             this.movedAlertView = null;
             this.moveXBlockBreadcrumbView = null;
             this.moveXBlockListView = null;
-            this.listenTo(Backbone, 'move:validateMoveOperation', this.validateMoveOperation);
+            this.isValidMove  = false;
+            this.listenTo(Backbone, 'move:enableMoveOperation', this.enableMoveOperation);
         },
 
         getTitle: function() {
@@ -73,7 +72,7 @@ function($, Backbone, _, gettext, BaseView, BaseModal, XBlockInfoModel, MoveXBlo
         show: function() {
             BaseModal.prototype.show.apply(this, [false]);
             Feedback.prototype.inFocus.apply(this, [this.options.modalWindowClass]);
-            this.enableMoveOperation(false);
+            this.updateMoveState(false);
             MoveXBlockUtils.hideMovedNotification(Feedback);
         },
 
@@ -125,16 +124,17 @@ function($, Backbone, _, gettext, BaseView, BaseModal, XBlockInfoModel, MoveXBlo
             );
         },
 
-        enableMoveOperation: function(isValidMove) {
+        updateMoveState: function(isValidMove) {
             var $moveButton = this.$el.find('.action-move');
             if (isValidMove) {
                 $moveButton.removeClass('is-disabled');
             } else {
                 $moveButton.addClass('is-disabled');
             }
+            this.isValidMove = isValidMove || false;
         },
 
-        validateMoveOperation: function(targetParentXBlockInfo) {
+        enableMoveOperation: function(targetParentXBlockInfo) {
             var isValidMove = false,
                 sourceParentType = this.sourceParentXBlockInfo.get('category'),
                 targetParentType = targetParentXBlockInfo.get('category');
@@ -143,11 +143,15 @@ function($, Backbone, _, gettext, BaseView, BaseModal, XBlockInfoModel, MoveXBlo
                 isValidMove = true;
                 this.targetParentXBlockInfo = targetParentXBlockInfo;
             }
-            this.enableMoveOperation(isValidMove);
+            this.updateMoveState(isValidMove);
         },
 
         moveXBlock: function() {
             var self = this;
+            if (!self.isValidMove) {
+                return;
+            }
+
             XBlockViewUtils.moveXBlock(self.sourceXBlockInfo.id, self.targetParentXBlockInfo.id)
                 .done(function(response) {
                     if (response.move_source_locator) {
