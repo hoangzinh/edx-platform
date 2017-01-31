@@ -5,7 +5,7 @@ define(['jquery', 'underscore', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpe
     function($, _, AjaxHelpers, TemplateHelpers, ViewHelpers, MoveXBlockModal, HtmlUtils, StringUtils, XBlockInfo) {
         'use strict';
         describe('MoveXBlock', function() {
-            var modal, showModal, renderViews, createXBlockInfo, createCourseOutline, moveXBlockBreadcrumbView,
+            var modal, showModal, renderViews, createXBlockInfo, createCourseOutline,
                 parentChildMap, categoryMap, createChildXBlockInfo, xblockAncestorInfo,
                 verifyBreadcrumbViewInfo, verifyListViewInfo, getDisplayedInfo, clickForwardButton,
                 clickBreadcrumbButton, verifyXBlockInfo, nextCategory, verifyMoveEnabled, getSentRequests,
@@ -240,7 +240,7 @@ define(['jquery', 'underscore', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpe
              * Click on last clickable breadcrumb button.
              */
             clickBreadcrumbButton = function() {
-                moveXBlockBreadcrumbView.$el.find('.bc-container button').last().click();
+                modal.moveXBlockBreadcrumbView.$el.find('.bc-container button').last().click();
             };
 
             /**
@@ -281,6 +281,7 @@ define(['jquery', 'underscore', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpe
                     if (category === 'section') {
                         return;
                     }
+                    verifyMoveEnabled(false);
                     clickBreadcrumbButton();
                 }
                 category = nextCategory(direction, category);  // eslint-disable-line no-param-reassign
@@ -304,8 +305,7 @@ define(['jquery', 'underscore', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpe
             };
 
             it('renders views with correct information', function() {
-                var hasCurrentLocation = true,
-                    outlineOptions = {section: 1, subsection: 1, unit: 1, component: 1},
+                var outlineOptions = {section: 1, subsection: 1, unit: 1, component: 1},
                     outline = createCourseOutline(outlineOptions);
 
                 renderViews(outline, xblockAncestorInfo);
