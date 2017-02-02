@@ -12,7 +12,8 @@ from logging import getLogger
 
 from courseware.model_data import get_score
 from lms.djangoapps.course_blocks.api import get_course_blocks
-from openedx.core.djangoapps.celery_utils.persist_on_failure import PersistOnFailureTask
+from celery_utils.logged_task import LoggedTask
+from celery_utils.persist_on_failure import PersistOnFailureTask
 from opaque_keys.edx.keys import UsageKey
 from opaque_keys.edx.locator import CourseLocator
 from submissions import api as sub_api
@@ -34,8 +35,14 @@ log = getLogger(__name__)
 KNOWN_RETRY_ERRORS = (DatabaseError, ValidationError)  # Errors we expect occasionally, should be resolved on retry
 RECALCULATE_GRADE_DELAY = 2  # in seconds, to prevent excessive _has_db_updated failures. See TNL-6424.
 
+class _BaseTask(PersistOnFailureTask, LoggedTask):
+    """
+    Include persistence features, as well as logging of task invocation.
+    """
+    abstract = True
 
-@task(bind=True, base=PersistOnFailureTask, default_retry_delay=30, routing_key=settings.RECALCULATE_GRADES_ROUTING_KEY)
+
+@task(bind=True, base=_BaseTask, default_retry_delay=30, routing_key=settings.RECALCULATE_GRADES_ROUTING_KEY)
 def recalculate_subsection_grade_v3(self, **kwargs):
     """
     Latest version of the recalculate_subsection_grade task.  See docstring
