@@ -94,7 +94,7 @@ define(['jquery', 'underscore', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpe
                 var childInfo = {
                     category: categoryMap[category],
                     display_name: category + '_display_name_' + xblockIndex,
-                    id: category + '_ID'
+                    id: category + '_ID_' + xblockIndex
                 };
                 return createXBlockInfo(parentChildMap[category], outlineOptions, childInfo);
             };
@@ -150,9 +150,9 @@ define(['jquery', 'underscore', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpe
              * @param {any} courseOutlineInfo      course outline info
              * @param {any} ancestorInfo           ancestors info
              */
-            renderViews = function(courseOutlineJson, ancestorInfo) {
+            renderViews = function(courseOutlineInfo, ancestorInfo) {
                 var ancestorInfo = ancestorInfo || {ancestors: []};  // eslint-disable-line no-redeclare
-                modal.renderViews(courseOutlineJson, ancestorInfo);
+                modal.renderViews(courseOutlineInfo, ancestorInfo);
             };
 
             /**
