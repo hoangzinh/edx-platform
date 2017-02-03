@@ -1,6 +1,7 @@
 """Helpers for the student app. """
 from datetime import datetime
 import logging
+import re
 import urllib
 
 from pytz import UTC
@@ -269,11 +270,14 @@ def get_redirect_to(request):
 
     :returns: redirect url if safe else None
     """
+    static_file_format = '\w+\.(jpeg|jpg|gif|png|ico)'
     redirect_to = request.GET.get('next')
 
     # if we get a redirect parameter, make sure it's safe. If it's not, drop the
     # parameter.
-    if redirect_to and (not http.is_safe_url(redirect_to) or settings.STATIC_URL in redirect_to):
+    if redirect_to and (not http.is_safe_url(redirect_to)
+                        or settings.STATIC_URL in redirect_to or re.search(static_file_format, redirect_to)):
+
         log.warning(
             u'Unsafe redirect parameter detected: %(redirect_to)r',
             {"redirect_to": redirect_to}
