@@ -124,7 +124,7 @@ def login_and_registration_form(request, initial_mode="login"):
             'login_form_desc': json.loads(form_descriptions['login']),
             'registration_form_desc': json.loads(form_descriptions['registration']),
             'password_reset_form_desc': json.loads(form_descriptions['password_reset']),
-            'create_account_option': settings.FEATURES.get('ALLOW_PUBLIC_ACCOUNT_CREATION')
+            'account_creation_allowed': settings.FEATURES.get('ALLOW_PUBLIC_ACCOUNT_CREATION')
         },
         'login_redirect_url': redirect_to,  # This gets added to the query string of the "Sign In" button in header
         'responsive': True,

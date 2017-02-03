@@ -67,7 +67,7 @@
                             login_form_desc: FORM_DESCRIPTION,
                             registration_form_desc: FORM_DESCRIPTION,
                             password_reset_form_desc: FORM_DESCRIPTION,
-                            create_account_option: (typeof createAccountOption === 'undefined' ? true :
+                            account_creation_allowed: (typeof createAccountOption === 'undefined' ? true :
                                 createAccountOption)
                         },
                         $logistrationElement = $('#login-and-registration-container');

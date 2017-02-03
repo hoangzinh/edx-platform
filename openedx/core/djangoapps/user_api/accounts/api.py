@@ -295,7 +295,7 @@ def create_account(username, password, email):
     """
     # Check if ALLOW_PUBLIC_ACCOUNT_CREATION flag turned off to restrict user account creation
     if not settings.FEATURES.get('ALLOW_PUBLIC_ACCOUNT_CREATION', False):
-        return HttpResponseForbidden("Account creation not allowed.")
+        return HttpResponseForbidden(_("Account creation not allowed."))
 
     # Validate the username, password, and email
     # This will raise an exception if any of these are not in a valid format.

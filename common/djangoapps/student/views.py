@@ -1547,7 +1547,7 @@ def _do_create_account(form, custom_form=None):
     Note: this function is also used for creating test users.
     """
     # Check if ALLOW_PUBLIC_ACCOUNT_CREATION flag turned off to restrict user account creation
-    if not settings.FEATURES.get('ALLOW_PUBLIC_ACCOUNT_CREATION', False):
+    if not settings.FEATURES.get('ALLOW_PUBLIC_ACCOUNT_CREATION', True):
         raise PermissionDenied()
 
     errors = {}
@@ -1715,10 +1715,7 @@ def create_account_with_params(request, params):
     # Perform operations within a transaction that are critical to account creation
     with transaction.atomic():
         # first, create the account
-        try:
-            (user, profile, registration) = _do_create_account(form, custom_form)
-        except PermissionDenied:
-            raise
+        (user, profile, registration) = _do_create_account(form, custom_form)
 
         # next, link the account with social auth, if provided via the API.
         # (If the user is using the normal register page, the social auth pipeline does the linking, not this code)
@@ -1975,8 +1972,8 @@ def create_account(request, post_override=None):
     Used by form in signup_modal.html, which is included into navigation.html
     """
     # Check if ALLOW_PUBLIC_ACCOUNT_CREATION flag turned off to restrict user account creation
-    if not settings.FEATURES.get('ALLOW_PUBLIC_ACCOUNT_CREATION', False):
-        return HttpResponseForbidden("Account creation not allowed.")
+    if not settings.FEATURES.get('ALLOW_PUBLIC_ACCOUNT_CREATION', True):
+        return HttpResponseForbidden(_("Account creation not allowed."))
 
     warnings.warn("Please use RegistrationView instead.", DeprecationWarning)
 
@@ -2083,7 +2080,7 @@ def auto_auth(request):
         profile = UserProfile.objects.get(user=user)
         reg = Registration.objects.get(user=user)
     except PermissionDenied:
-        return HttpResponseForbidden("Account creation not allowed.")
+        return HttpResponseForbidden(_("Account creation not allowed."))
 
     # Set the user's global staff bit
     if is_staff is not None:

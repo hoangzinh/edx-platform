@@ -354,7 +354,7 @@ class RegistrationView(APIView):
             }
             return JsonResponse(errors, status=400)
         except PermissionDenied:
-            return HttpResponseForbidden("Account creation not allowed.")
+            return HttpResponseForbidden(_("Account creation not allowed."))
 
         response = JsonResponse({"success": True})
         set_logged_in_cookies(request, response, user)
