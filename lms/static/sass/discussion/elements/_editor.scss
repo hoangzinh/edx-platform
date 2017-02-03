@@ -22,6 +22,11 @@
 
 .wmd-preview-container {
   @include discussion-new-post-wmd-preview-container;
+
+  .discussion-board &,
+  .discussion-user-profile-board & {
+    margin-top: -5px;
+  }
 }
 
 .wmd-preview-label {
