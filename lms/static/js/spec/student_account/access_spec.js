@@ -67,8 +67,7 @@
                             login_form_desc: FORM_DESCRIPTION,
                             registration_form_desc: FORM_DESCRIPTION,
                             password_reset_form_desc: FORM_DESCRIPTION,
-                            account_creation_allowed: (typeof createAccountOption === 'undefined' ? true :
-                                createAccountOption)
+                            account_creation_allowed: createAccountOption
                         },
                         $logistrationElement = $('#login-and-registration-container');
 
@@ -233,6 +232,13 @@
 
                     // Expect the Create an account section is hidden
                     expect((view.$el.find('.toggle-form')).length).toEqual(0);
+                });
+                
+                it('shows create an account section', function() {
+                    ajaxSpyAndInitialize(this, 'login', '', '', true);
+
+                    // Expect the Create an account section is visible
+                    expect((view.$el.find('.toggle-form')).length).toEqual(1);
                 });
             });
         });
