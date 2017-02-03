@@ -65,9 +65,7 @@ from courseware.courses import (
     sort_by_start_date,
     UserNotEnrolled
 )
-from courseware.date_summary import (
-    VerifiedUpgradeDeadlineDate,
-)
+from courseware.date_summary import VerifiedUpgradeDeadlineDate
 from courseware.masquerade import setup_masquerade
 from courseware.model_data import FieldDataCache
 from courseware.models import StudentModule, BaseStudentModuleHistory
