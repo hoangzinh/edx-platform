@@ -233,7 +233,7 @@
                     // Expect the Create an account section is hidden
                     expect((view.$el.find('.toggle-form')).length).toEqual(0);
                 });
-                
+
                 it('shows create an account section', function() {
                     ajaxSpyAndInitialize(this, 'login', '', '', true);
 
