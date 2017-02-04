@@ -31,10 +31,10 @@ def get_course_enrollments(user):
     is filtered by course_org_filter
     """
     enrollments = CourseEnrollment.enrollments_for_user(user)
-    course_org = configuration_helpers.get_value('course_org_filter')
-    if course_org:
+    course_org_filter = configuration_helpers.get_current_site_orgs()
+    if course_org_filter:
         site_enrollments = [
-            enrollment for enrollment in enrollments if enrollment.course_id.org == course_org
+            enrollment for enrollment in enrollments if enrollment.course_id.org in course_org_filter
         ]
     else:
         site_enrollments = [

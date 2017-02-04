@@ -78,7 +78,7 @@ class SiteConfiguration(models.Model):
         """
         for configuration in cls.objects.filter(values__contains=org, enabled=True).all():
             org_filter = configuration.get_value('course_org_filter', None)
-            if org_filter == org:
+            if org in org_filter:
                 return configuration.get_value(name, default)
         return default
 
@@ -94,9 +94,10 @@ class SiteConfiguration(models.Model):
         org_filter_set = set()
 
         for configuration in cls.objects.filter(values__contains='course_org_filter', enabled=True).all():
-            org_filter = configuration.get_value('course_org_filter', None)
-            if org_filter:
-                org_filter_set.add(org_filter)
+            org_filter = configuration.get_value('course_org_filter', [])
+            if not isinstance(org_filter, list):
+                org_filter = [org_filter]
+            org_filter_set.update(org_filter)
         return org_filter_set
 
     @classmethod
