@@ -27,7 +27,7 @@ class TestGetPrograms(mixins.CatalogIntegrationMixin, TestCase):
         self.type = 'FooBar'
         self.catalog_integration = self.create_catalog_integration(cache_ttl=1)
 
-    def assert_contract(self, call_args, program_uuid=None, type=None):  # pylint: disable=redefined-builtin
+    def assert_contract(self, call_args, program_uuid=None, type=None, status=None):  # pylint: disable=redefined-builtin
         """Verify that API data retrieval utility is used correctly."""
         args, kwargs = call_args
 
@@ -36,9 +36,11 @@ class TestGetPrograms(mixins.CatalogIntegrationMixin, TestCase):
 
         self.assertEqual(kwargs['resource_id'], program_uuid)
 
-        cache_key = '{base}.programs{type}'.format(
+        cache_key = '{base}.programs{type}{status}{use_full_course_serializer}'.format(
             base=self.catalog_integration.CACHE_KEY,
-            type='.' + type if type else ''
+            type='.' + type if type else '',
+            status='.' + status if status else '',
+            use_full_course_serializer='.' + 'full_course_serializer' if uuid else '',
         )
         self.assertEqual(
             kwargs['cache_key'],
@@ -53,6 +55,11 @@ class TestGetPrograms(mixins.CatalogIntegrationMixin, TestCase):
         }
         if type:
             querystring['type'] = type
+        if status:
+            querystring['status'] = status
+        if program_uuid:
+            querystring['use_full_course_serializer'] = True
+
         self.assertEqual(kwargs['querystring'], querystring)
 
         return args, kwargs
