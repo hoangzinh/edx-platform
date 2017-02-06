@@ -65,6 +65,9 @@ def get_programs(user=None, uuid=None, type=None):  # pylint: disable=redefined-
         if type:
             querystring['type'] = type
 
+        if uuid:
+            querystring['course_run_with_seats'] = 1
+
         return get_edx_api_data(
             catalog_integration,
             user,
