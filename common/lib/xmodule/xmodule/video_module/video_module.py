@@ -295,7 +295,8 @@ class VideoModule(VideoFields, VideoTranscriptsMixin, VideoStudentViewHandlers, 
             xblock_settings = settings_service.get_settings_bucket(self)
             if xblock_settings and 'YOUTUBE_API_KEY' in xblock_settings:
                 yt_api_key = xblock_settings['YOUTUBE_API_KEY']
-
+        import sys
+        print >> sys.stderr, str(settings.YOUTUBE['TEST_TIMEOUT']) + ">>>>>>>>>>>>>>>>>>>"
         metadata = {
             'saveStateUrl': self.system.ajax_url + '/save_user_state',
             'autoplay': settings.FEATURES.get('AUTOPLAY_VIDEOS', False),
