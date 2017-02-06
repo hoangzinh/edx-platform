@@ -27,7 +27,8 @@ class TestLoginHelper(TestCase):
             req = self.request.get(reverse("login") + "?next={url}".format(url=unsafe_url))
             get_next_url_for_login_page(req)
             logger.check(
-                (LOGGER_NAME, "WARNING", u"Unsafe redirect parameter detected: u'{url}'".format(url=unsafe_url))
+                (LOGGER_NAME, "WARNING",
+                 u"Unsafe redirect parameter detected after login page: u'{url}'".format(url=unsafe_url))
             )
 
     def test_safe_next(self):
@@ -43,5 +44,6 @@ class TestLoginHelper(TestCase):
             req = self.request.get(reverse("login") + "?next={url}".format(url=static_assets))
             get_next_url_for_login_page(req)
             logger.check(
-                (LOGGER_NAME, "WARNING", u"Unsafe redirect parameter detected: u'{url}'".format(url=static_assets))
+                (LOGGER_NAME, "WARNING",
+                 u"Unsafe redirect parameter detected after login page: u'{url}'".format(url=static_assets))
             )

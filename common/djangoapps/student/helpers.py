@@ -276,10 +276,11 @@ def get_redirect_to(request):
     # if we get a redirect parameter, make sure it's safe. If it's not, drop the
     # parameter.
     if redirect_to and (not http.is_safe_url(redirect_to)
-                        or settings.STATIC_URL in redirect_to or re.search(static_file_format, redirect_to)):
+                        or settings.STATIC_URL in redirect_to
+                        or re.search(static_file_format, redirect_to)):
 
         log.warning(
-            u'Unsafe redirect parameter detected: %(redirect_to)r',
+            u'Unsafe redirect parameter detected after login page: %(redirect_to)r',
             {"redirect_to": redirect_to}
         )
         redirect_to = None
