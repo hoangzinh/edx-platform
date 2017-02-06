@@ -7,11 +7,10 @@ from edx_rest_api_client.client import EdxRestApiClient
 from opaque_keys.edx.keys import CourseKey
 
 from openedx.core.djangoapps.catalog.models import CatalogIntegration
-from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 from openedx.core.lib.edx_api_utils import get_edx_api_data
 from openedx.core.lib.token_utils import JwtBuilder
-from openedx.core.djangoapps.cache_toolbox import app_settings
 
+from xmodule.modulestore.django import modulestore
 
 def create_catalog_api_client(user, catalog_integration):
     """Returns an API client which can be used to make catalog API requests."""
@@ -115,20 +114,23 @@ def _get_program_instructors(program):
         program_id=program.get('uuid')
     )
 
-    lookup_list = []
-    instructors = cache.get(cache_key) or []
-    if instructors:
-        return instructors
+    program_instructors_dict = {}
+    program_instructors_list = cache.get(cache_key, [])
+    if program_instructors_list:
+        return program_instructors_list
 
-    for queryset in CourseOverview.objects.filter(id__in=_get_all_course_run_keys(program)).values_list(
-            'instructor_info', flat=True):
-        queryset = json.loads(queryset)
-        for instructor in queryset.get("instructors", []):
-            if instructor.get('name') not in lookup_list:
-                lookup_list.append(instructor.get('name'))
-                instructors.append(instructor)
-    cache.set(cache_key, instructors, app_settings.CACHE_TOOLBOX_DEFAULT_TIMEOUT)
-    return instructors
+    module_store = modulestore()
+    for course_run_key in _get_all_course_run_keys(program):
+        course_descriptor = module_store.get_course(course_run_key)
+        if course_descriptor:
+            course_instructors = getattr(course_descriptor, "instructor_info", {})
+            # Deduplicate program instructors using instructor name
+            program_instructors_dict.update(
+                {instructor.get('name'): instructor for instructor in course_instructors.get("instructors", [])}
+            )
+    program_instructors_list = program_instructors_dict.values()
+    cache.set(cache_key, program_instructors_list)
+    return program_instructors_list
 
 
 def _get_all_course_run_keys(program):
@@ -142,27 +144,38 @@ def _get_all_course_run_keys(program):
     return keys
 
 
-def get_active_programs_data(user=None, program_id=None):
+def get_program_details(user=None, program_id=None):
     """
-    This will return the program details with its corresponding program_type if program_id
-    is given otherwise returns the list of all the active programs with their program_types.
+    This will return the program details with its corresponding program type and instructors
     """
-    program_data = []
-    programs = get_programs(user, program_id)
-    if not programs:
+    program = get_programs(user, program_id)
+    if not program:
         return None
 
-    # get_programs returns a dict when provided with the program_id parameter.
-    if isinstance(programs, dict):
-        programs = [programs]
+    program["type"] = next(
+        program_type
+        for program_type in get_program_types(user)
+        if program_type['name'] == program['type']
+    )
+    program["instructors"] = _get_program_instructors(program)
+    return program
 
+
+def get_active_programs_list(user=None):
+    """
+    Return the list of active Programs after adding the ProgramType Logo Image
+    """
+    programs = get_programs(user)
+    if not programs:
+        return []
+
+    active_programs_list = []
     program_types = {program_type["name"]: program_type for program_type in get_program_types(user)}
     for program in programs:
         if program["status"] == "active":
-            program["type"] = program_types[program["type"]]
-            program["instructors"] = _get_program_instructors(programs[0]) if program_id else None
-            program_data.append(program)
-    return program_data
+            program["logo_image"] = program_types[program["type"]]["logo_image"]
+            active_programs_list.append(program)
+    return active_programs_list
 
 
 def munge_catalog_program(catalog_program):
