@@ -47,3 +47,20 @@ class TestLoginHelper(TestCase):
                 (LOGGER_NAME, "WARNING",
                  u"Unsafe redirect parameter detected after login page: u'{url}'".format(url=static_assets))
             )
+
+    def test_image_next(self):
+        with LogCapture(LOGGER_NAME, level=logging.WARNING) as logger:
+            req = self.request.get(reverse("login") + "?next=favicon.ico")
+            get_next_url_for_login_page(req)
+            logger.check(
+                (LOGGER_NAME, "WARNING",
+                 u"Unsafe redirect parameter detected after login page: u'favicon.ico'")
+            )
+
+        with LogCapture(LOGGER_NAME, level=logging.WARNING) as logger:
+            req = self.request.get(reverse("login") + "?next=dummy.png")
+            get_next_url_for_login_page(req)
+            logger.check(
+                (LOGGER_NAME, "WARNING",
+                 u"Unsafe redirect parameter detected after login page: u'dummy.png'")
+            )
