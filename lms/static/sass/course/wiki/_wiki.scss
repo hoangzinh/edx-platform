@@ -8,6 +8,11 @@
     float: right;
   }
 
+  .form-search .input-prepend>label {
+    display: inline-block;
+    vertical-align: bottom;
+  }
+
   @include clearfix();
 
   .breadcrumbs-header {
@@ -746,7 +751,7 @@
   }
 
   .filter-clear {
-    margin-right: ($baseline/2);
+    margin-left: ($baseline/2);
     margin-top: ($baseline/2);
     font-size: .9em;
 
