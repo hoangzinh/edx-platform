@@ -1547,7 +1547,10 @@ def _do_create_account(form, custom_form=None):
     Note: this function is also used for creating test users.
     """
     # Check if ALLOW_PUBLIC_ACCOUNT_CREATION flag turned off to restrict user account creation
-    if not settings.FEATURES.get('ALLOW_PUBLIC_ACCOUNT_CREATION', True):
+    if not configuration_helpers.get_value(
+            'ALLOW_PUBLIC_ACCOUNT_CREATION',
+            settings.FEATURES.get('ALLOW_PUBLIC_ACCOUNT_CREATION', True)
+    ):
         raise PermissionDenied()
 
     errors = {}
@@ -1972,7 +1975,10 @@ def create_account(request, post_override=None):
     Used by form in signup_modal.html, which is included into navigation.html
     """
     # Check if ALLOW_PUBLIC_ACCOUNT_CREATION flag turned off to restrict user account creation
-    if not settings.FEATURES.get('ALLOW_PUBLIC_ACCOUNT_CREATION', True):
+    if not configuration_helpers.get_value(
+            'ALLOW_PUBLIC_ACCOUNT_CREATION',
+            settings.FEATURES.get('ALLOW_PUBLIC_ACCOUNT_CREATION', True)
+    ):
         return HttpResponseForbidden(_("Account creation not allowed."))
 
     warnings.warn("Please use RegistrationView instead.", DeprecationWarning)

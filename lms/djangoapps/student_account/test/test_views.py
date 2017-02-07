@@ -35,6 +35,9 @@ from commerce.models import CommerceConfiguration
 from commerce.tests import TEST_API_URL, TEST_API_SIGNING_KEY, factories
 from commerce.tests.mocks import mock_get_orders
 from course_modes.models import CourseMode
+from microsite_configuration.backends.base import BaseMicrositeBackend
+from microsite_configuration.microsite import get_backend, get_value
+from microsite_configuration.tests.tests import MICROSITE_BACKENDS
 from openedx.core.djangoapps.oauth_dispatch.tests import factories as dot_factories
 from openedx.core.djangoapps.programs.tests.mixins import ProgramsApiConfigMixin
 from openedx.core.djangoapps.user_api.accounts.api import activate_account, create_account
@@ -505,14 +508,29 @@ class StudentAccountLoginAndRegistrationTest(ThirdPartyAuthTestMixin, UrlResetMi
             'next': '/account/finish_auth?{}'.format(urlencode(params))
         })
 
-    @mock.patch.dict(settings.FEATURES, {"ALLOW_PUBLIC_ACCOUNT_CREATION": False})
-    def test_register_option_login_page(self):
+    @ddt.data(*MICROSITE_BACKENDS)
+    def test_register_option_login_page(self, site_backend):
         """
-        Navigate to the login page and check the Register link is hidden when ALLOW_PUBLIC_ACCOUNT_CREATION
-        flag is turned off
+        Navigate to the login page of microsite and check the Register option is hidden when
+        ALLOW_PUBLIC_ACCOUNT_CREATION flag is turned off
         """
-        response = self.client.get(reverse('signin_user'))
-        self.assertNotIn('<a class="btn-neutral" href="/register?next=%2Fdashboard">Register</a>', response.content)
+
+        def _side_effect_for_get_value(value, default=None):
+            """
+            returns a side_effect with given return value for a given value
+            """
+            if value == 'ALLOW_PUBLIC_ACCOUNT_CREATION':
+                return False
+            else:
+                return get_value(value, default)
+
+        with mock.patch('microsite_configuration.microsite.get_value') as mock_get_value:
+            mock_get_value.side_effect = _side_effect_for_get_value
+            with mock.patch('microsite_configuration.microsite.BACKEND',
+                            get_backend(site_backend, BaseMicrositeBackend)):
+                response = self.client.get(reverse('signin_user'), HTTP_HOST=settings.MICROSITE_TEST_HOSTNAME)
+                self.assertNotIn('<a class="btn-neutral" href="/register?next=%2Fdashboard">Register</a>',
+                                 response.content)
 
 
 @override_settings(ECOMMERCE_API_URL=TEST_API_URL, ECOMMERCE_API_SIGNING_KEY=TEST_API_SIGNING_KEY)

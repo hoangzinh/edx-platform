@@ -294,7 +294,10 @@ def create_account(username, password, email):
         UserAPIInternalError: the operation failed due to an unexpected error.
     """
     # Check if ALLOW_PUBLIC_ACCOUNT_CREATION flag turned off to restrict user account creation
-    if not settings.FEATURES.get('ALLOW_PUBLIC_ACCOUNT_CREATION', False):
+    if not configuration_helpers.get_value(
+            'ALLOW_PUBLIC_ACCOUNT_CREATION',
+            settings.FEATURES.get('ALLOW_PUBLIC_ACCOUNT_CREATION', True)
+    ):
         return HttpResponseForbidden(_("Account creation not allowed."))
 
     # Validate the username, password, and email

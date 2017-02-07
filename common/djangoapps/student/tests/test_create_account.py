@@ -405,7 +405,7 @@ class TestCreateAccount(TestCase):
                 UserAttribute.get_user_attribute(user, REGISTRATION_UTM_CREATED_AT)
             )
 
-    @patch.dict(settings.FEATURES, {"ALLOW_PUBLIC_ACCOUNT_CREATION": False})
+    @patch("openedx.core.djangoapps.site_configuration.helpers.get_value", mock.Mock(return_value=False))
     def test_create_account_not_allowed(self):
         """
         Test case to check user creation is forbidden when ALLOW_PUBLIC_ACCOUNT_CREATION feature flag is turned off

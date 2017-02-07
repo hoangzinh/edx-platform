@@ -14,9 +14,15 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 
 from contentstore.models import PushNotificationConfig
-from contentstore.tests.utils import parse_json, user, registration, AjaxEnabledTestClient
-from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from contentstore.tests.test_course_settings import CourseTestCase
+from contentstore.tests.utils import parse_json, user, registration, AjaxEnabledTestClient
+from microsite_configuration.backends.base import BaseMicrositeBackend
+from microsite_configuration.microsite import get_backend
+from microsite_configuration.tests.tests import (
+    side_effect_for_get_value,
+    MICROSITE_BACKENDS,
+)
+from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory
 import datetime
 from pytz import UTC
@@ -86,6 +92,7 @@ class ContentStoreTestCase(ModuleStoreTestCase):
         self.assertTrue(user(email).is_active)
 
 
+@ddt
 class AuthTestCase(ContentStoreTestCase):
     """Check that various permissions-related things work"""
 
@@ -302,33 +309,46 @@ class AuthTestCase(ContentStoreTestCase):
         # re-request, and we should get a redirect to login page
         self.assertRedirects(resp, settings.LOGIN_REDIRECT_URL + '?next=/home/')
 
-    @mock.patch.dict(settings.FEATURES, {"ALLOW_PUBLIC_ACCOUNT_CREATION": False})
-    def test_signup_button_index_page(self):
+    @data(*MICROSITE_BACKENDS)
+    def test_signup_button_index_page(self, site_backend):
         """
-        Navigate to the home page and check the Sign Up button is hidden when ALLOW_PUBLIC_ACCOUNT_CREATION flag
-        is turned off
+        Navigate to the home page of microsite and check the Sign Up button is hidden when
+        ALLOW_PUBLIC_ACCOUNT_CREATION flag is turned off
         """
-        response = self.client.get(reverse('homepage'))
-        self.assertNotIn('<a class="action action-signup" href="/signup">Sign Up</a>', response.content)
+        with mock.patch('microsite_configuration.microsite.get_value') as mock_get_value:
+            mock_get_value.side_effect = side_effect_for_get_value('ALLOW_PUBLIC_ACCOUNT_CREATION', False)
+            with mock.patch('microsite_configuration.microsite.BACKEND',
+                            get_backend(site_backend, BaseMicrositeBackend)):
+                response = self.client.get('/', HTTP_HOST=settings.MICROSITE_TEST_HOSTNAME)
+                self.assertNotIn('<a class="action action-signup" href="/signup">Sign Up</a>', response.content)
 
-    @mock.patch.dict(settings.FEATURES, {"ALLOW_PUBLIC_ACCOUNT_CREATION": False})
-    def test_signup_button_login_page(self):
+    @data(*MICROSITE_BACKENDS)
+    def test_signup_button_login_page(self, site_backend):
         """
-        Navigate to the login page and check the Sign Up button is hidden when ALLOW_PUBLIC_ACCOUNT_CREATION flag
-        is turned off
+        Navigate to the login page of microsite and check the Sign Up button is hidden when
+        ALLOW_PUBLIC_ACCOUNT_CREATION flag is turned off
         """
-        response = self.client.get(reverse('login'))
-        self.assertNotIn('<a class="action action-signup" href="/signup">Sign Up</a>', response.content)
+        with mock.patch('microsite_configuration.microsite.get_value') as mock_get_value:
+            mock_get_value.side_effect = side_effect_for_get_value('ALLOW_PUBLIC_ACCOUNT_CREATION', False)
+            with mock.patch('microsite_configuration.microsite.BACKEND',
+                            get_backend(site_backend, BaseMicrositeBackend)):
+                response = self.client.get('/signin', HTTP_HOST=settings.MICROSITE_TEST_HOSTNAME)
+                self.assertNotIn('<a class="action action-signup" href="/signup">Sign Up</a>', response.content)
 
-    @mock.patch.dict(settings.FEATURES, {"ALLOW_PUBLIC_ACCOUNT_CREATION": False})
-    def test_signup_link_login_page(self):
+    @data(*MICROSITE_BACKENDS)
+    def test_signup_link_login_page(self, site_backend):
         """
-        Navigate to the login page and check the Sign Up link is hidden when ALLOW_PUBLIC_ACCOUNT_CREATION flag
-        is turned off
+        Navigate to the login page of microsite and check the Sign Up link is hidden when
+        ALLOW_PUBLIC_ACCOUNT_CREATION flag is turned off
         """
-        response = self.client.get(reverse('login'))
-        self.assertNotIn('<a href="/signup" class="action action-signin">Don&#39;t have a Studio Account? Sign up!</a>',
-                         response.content)
+        with mock.patch('microsite_configuration.microsite.get_value') as mock_get_value:
+            mock_get_value.side_effect = side_effect_for_get_value('ALLOW_PUBLIC_ACCOUNT_CREATION', False)
+            with mock.patch('microsite_configuration.microsite.BACKEND',
+                            get_backend(site_backend, BaseMicrositeBackend)):
+                response = self.client.get('/signin', HTTP_HOST=settings.MICROSITE_TEST_HOSTNAME)
+                self.assertNotIn(
+                    '<a href="/signup" class="action action-signin">Don&#39;t have a Studio Account? Sign up!</a>',
+                    response.content)
 
 
 class ForumTestCase(CourseTestCase):
