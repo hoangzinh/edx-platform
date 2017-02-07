@@ -130,13 +130,20 @@ function($, Backbone, _, gettext, BaseView, BaseModal, XBlockInfoModel, MoveXBlo
             }
             this.isValidMove = isValidMove || false;
         },
+        validCategoryCheck: function(targetParentType, sourceParentType) {
+            if (!_.contains(['course, chapter, sequential, vertical'], sourceParentType)) {
+                sourceParentType = 'vertical';
+            }
+            return targetParentType === sourceParentType;
+        },
 
-        enableMoveOperation: function(targetParentXBlockInfo) {
-            var isValidMove = false,
-                sourceParentType = this.sourceParentXBlockInfo.get('category'),
-                targetParentType = targetParentXBlockInfo.get('category');
+    enableMoveOperation: function(targetParentXBlockInfo) {
+        var isValidMove = false,
+            sourceParentType = this.sourceParentXBlockInfo.get('category'),
+            targetParentType = targetParentXBlockInfo.get('category');
 
-            if (targetParentType === sourceParentType && this.sourceParentXBlockInfo.id !== targetParentXBlockInfo.id) {
+        if (this.validCategoryCheck(targetParentType, sourceParentType)
+                && this.sourceParentXBlockInfo.id !== targetParentXBlockInfo.id) {
                 isValidMove = true;
                 this.targetParentXBlockInfo = targetParentXBlockInfo;
             }

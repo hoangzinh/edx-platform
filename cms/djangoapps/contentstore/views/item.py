@@ -348,12 +348,10 @@ def xblock_view_handler(request, usage_key_string, view_name):
             force_render = request.GET.get('force_render', None)
 
             # Set up the context to be passed to each XBlock's render method.
-            can_move = is_unit(xblock) if view_name == 'container_preview' else xblock.parent.category == 'vertical'
             context = {
                 'is_pages_view': is_pages_view,     # This setting disables the recursive wrapping of xblocks
                 'is_unit_page': is_unit(xblock),
                 'can_edit': can_edit,
-                'can_move': can_move,
                 'root_xblock': xblock if (view_name == 'container_preview') else None,
                 'reorderable_items': reorderable_items,
                 'paging': paging,
