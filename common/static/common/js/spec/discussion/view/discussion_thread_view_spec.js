@@ -193,7 +193,7 @@
                     expect(this.view.$('.post-actions-list').find('.action-edit').parent('.is-hidden').length).toBe(1);
                     expect(this.view.$('.response-actions-list').find('.action-edit')
                         .parent().not('.is-hidden').length).toBe(1);
-                    return expect(this.view.$('.forum-response').focus).toHaveBeenCalled();
+                    expect(document.activeElement === this.view.$('.forum-response')[0]);
                 });
                 it('can post a second response', function() {
                     renderWithTestResponses(this.view, 1);
@@ -206,7 +206,7 @@
                     expect(this.view.$('.post-actions-list').find('.action-edit').parent('.is-hidden').length).toBe(1);
                     expect(this.view.$('.response-actions-list').find('.action-edit').parent()
                         .not('.is-hidden').length).toBe(2);
-                    return expect(this.view.$('.forum-response').focus).toHaveBeenCalled();
+                    expect(document.activeElement === this.view.$('.forum-response')[0]);
                 });
             });
             describe('response count and pagination', function() {
