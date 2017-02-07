@@ -169,7 +169,7 @@ def get_program_details(user=None, program_id=None):
 
 def get_active_programs_list(user=None):
     """
-    Return the list of active Programs after adding the ProgramType Logo Image
+    Returns the list of active programs after adding the program type.
     """
     programs = get_programs(user, status="active")
     if not programs:
@@ -177,7 +177,7 @@ def get_active_programs_list(user=None):
 
     program_types = {program_type["name"]: program_type for program_type in get_program_types(user)}
     for program in programs:
-        program["logo_image"] = program_types[program["type"]]["logo_image"]
+        program["type"] = program_types[program["type"]]
     return programs
 
 
