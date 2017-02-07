@@ -671,6 +671,29 @@ def course_about(request, course_id):
         return render_to_response('courseware/course_about.html', context)
 
 
+@ensure_csrf_cookie
+@cache_if_anonymous()
+def program_detail(request, program_id):
+    """
+    Display the program's detail page.
+
+    Assumes the program_id is in a valid format.
+    """
+    program = get_active_programs_data(request.user, program_id)
+
+    if not program:
+        raise Http404
+
+    # TODO: put these keys dynamically
+    for course in program[0]['courses']:
+        course_runs = course['course_runs'][0]
+        course_runs['registered'] = False
+        course_runs['can_enroll'] = True
+        course_runs['is_shib_course'] = False
+
+    return render_to_response('courseware/program_detail.html', {'program': program[0]})
+
+
 @transaction.non_atomic_requests
 @login_required
 @cache_control(no_cache=True, no_store=True, must_revalidate=True)
