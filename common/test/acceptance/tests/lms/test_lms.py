@@ -610,7 +610,7 @@ class CourseWikiTest(UniqueCourseTest):
         """
         Verify the basic accessibility of the wiki page as initially displayed.
         """
-        self._check_for_accessibility_errors(self.course_wiki_page)
+        self.course_wiki_page.a11y_audit.check_for_accessibility_errors()
 
     @attr('a11y')
     def test_edit_a11y(self):
@@ -618,7 +618,7 @@ class CourseWikiTest(UniqueCourseTest):
         Verify the basic accessibility of edit wiki page.
         """
         self._open_editor()
-        self._check_for_accessibility_errors(self.course_wiki_edit_page)
+        self.course_wiki_edit_page.a11y_audit.check_for_accessibility_errors()
 
     @attr('a11y')
     def test_changes_a11y(self):
@@ -628,7 +628,7 @@ class CourseWikiTest(UniqueCourseTest):
         self.course_wiki_page.show_history()
         history_page = CourseWikiHistoryPage(self.browser, self.course_id, self.course_info)
         history_page.wait_for_page()
-        self._check_for_accessibility_errors(history_page)
+        history_page.a11y_audit.check_for_accessibility_errors()
 
     @attr('a11y')
     def test_children_a11y(self):
@@ -638,13 +638,7 @@ class CourseWikiTest(UniqueCourseTest):
         self.course_wiki_page.show_children()
         children_page = CourseWikiChildrenPage(self.browser, self.course_id, self.course_info)
         children_page.wait_for_page()
-        custom_rules = {
-            'ignore': [
-                'label',  # TNL-6440
-                'data-table'  # TNL-6439
-            ]
-        }
-        self._check_for_accessibility_errors(children_page, custom_rules)
+        children_page.a11y_audit.check_for_accessibility_errors()
 
 
 @attr(shard=1)
