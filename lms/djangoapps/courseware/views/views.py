@@ -18,7 +18,7 @@ from django.core.urlresolvers import reverse
 from django.core.context_processors import csrf
 from django.db import transaction
 from django.db.models import Q
-from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, QueryDict
+from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, JsonResponse, QueryDict
 from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
 from django.utils.timezone import UTC
@@ -98,6 +98,7 @@ from ..entrance_exams import user_must_complete_entrance_exam
 from ..module_render import get_module_for_descriptor, get_module, get_module_by_usage_id
 
 from web_fragments.fragment import Fragment
+from web_fragments.views import WEB_FRAGMENT_RESPONSE_TYPE
 
 log = logging.getLogger("edx.courseware")
 
@@ -418,7 +419,7 @@ def static_tab(request, course_id, tab_slug):
         tab
     )
 
-    return render_to_response('courseware/tab-fragment-v1.html', {
+    return render_to_response('courseware/static_tab.html', {
         'course': course,
         'active_page': 'static_tab_{0}'.format(tab['url_slug']),
         'tab': tab,
@@ -428,27 +429,35 @@ def static_tab(request, course_id, tab_slug):
     })
 
 
-@ensure_csrf_cookie
-@ensure_valid_course_key
-def tab_fragment_container(request, course_id, tab_type):
+class CourseTabView(View):
     """
-    Displays a tab page that contains a web fragment.
+    View that displays a course tab page.
     """
 
-    course_key = CourseKey.from_string(course_id)
-    course = get_course_with_access(request.user, 'load', course_key)
+    @method_decorator(ensure_csrf_cookie)
+    @method_decorator(ensure_valid_course_key)
+    def get(self, request, course_id, tab_type):
+        """
+        Displays a course tab page that contains a web fragment.
+        """
+        course_key = CourseKey.from_string(course_id)
+        course = get_course_with_access(request.user, 'load', course_key)
+        tab = [tab for tab in course.tabs if tab.type == tab_type][0]
+        fragment = tab.render_fragment(request, course)
 
-    tab = [tab for tab in course.tabs if tab.type == tab_type][0]
-    fragment = tab.render_fragment(request, course)
-
-    return render_to_response('courseware/tab-fragment-v2.html', {
-        'course': course,
-        'active_page': tab['type'],
-        'tab': tab,
-        'fragment': fragment,
-        'uses_pattern_library': True,
-        'disable_courseware_js': True,
-    })
+        response_format = request.GET.get('format') or request.POST.get('format') or 'html'
+        if response_format == 'json' or WEB_FRAGMENT_RESPONSE_TYPE in request.META.get('HTTP_ACCEPT'):
+            json = fragment.to_dict()
+            return JsonResponse(json)
+        else:
+            return render_to_response('courseware/tab-view.html', {
+                'course': course,
+                'active_page': tab['type'],
+                'tab': tab,
+                'fragment': fragment,
+                'uses_pattern_library': True,
+                'disable_courseware_js': True,
+            })
 
 
 @ensure_csrf_cookie

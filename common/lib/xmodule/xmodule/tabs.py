@@ -2,12 +2,14 @@
 Implement CourseTab
 """
 from abc import ABCMeta
+import json
 import logging
 
 from xblock.fields import List
 from openedx.core.lib.api.plugins import PluginError
 
 from django.core.files.storage import get_storage_class
+from django.http import JsonResponse
 
 log = logging.getLogger("edx.courseware")
 
@@ -32,6 +34,15 @@ class CourseTab(object):
     # The title of the tab, which should be internationalized using
     # ugettext_noop since the user won't be available in this context.
     title = None
+
+    # HTML class to add to the tab page's body
+    body_class = None
+
+    # HTML class to add to the tab page's body, or None if no class it to be added
+    body_class = None
+
+    # Token to identify the online help URL, or None if no help is provided
+    online_help_token = None
 
     # Class property that specifies whether the tab can be hidden for a particular course
     is_hideable = False
@@ -70,7 +81,7 @@ class CourseTab(object):
         Args:
             tab_dict (dict) - a dictionary of parameters used to build the tab.
         """
-
+        super(CourseTab, self).__init__()
         self.name = tab_dict.get('name', self.title)
         self.tab_id = tab_dict.get('tab_id', getattr(self, 'tab_id', self.type))
         self.course_staff_only = tab_dict.get('course_staff_only', False)
@@ -114,16 +125,8 @@ class CourseTab(object):
         This method allows callers to access CourseTab members with the d[key] syntax as is done with
         Python dictionary objects.
         """
-        if key == 'name':
-            return self.name
-        elif key == 'type':
-            return self.type
-        elif key == 'tab_id':
-            return self.tab_id
-        elif key == 'is_hidden':
-            return self.is_hidden
-        elif key == 'course_staff_only':
-            return self.course_staff_only
+        if hasattr(self, key):
+            return getattr(self, key, None)
         else:
             raise KeyError('Key {0} not present in tab {1}'.format(key, self.to_json()))
 
@@ -134,14 +137,8 @@ class CourseTab(object):
 
         Note: the 'type' member can be 'get', but not 'set'.
         """
-        if key == 'name':
-            self.name = value
-        elif key == 'tab_id':
-            self.tab_id = value
-        elif key == 'is_hidden':
-            self.is_hidden = value
-        elif key == 'course_staff_only':
-            self.course_staff_only = value
+        if hasattr(self, key):
+            setattr(self, key, value)
         else:
             raise KeyError('Key {0} cannot be set in tab {1}'.format(key, self.to_json()))
 
@@ -247,14 +244,18 @@ class TabFragmentViewMixin(object):
     """
     A mixin for tabs that render themselves as web fragments.
     """
-    component_name = None
+    fragment_view_name = None
+
+    def __init__(self, tab_dict):
+        super(TabFragmentViewMixin, self).__init__(tab_dict)
+        self._fragment_view = None
 
     @property
     def link_func(self):
         """ Returns a function that returns the course tab's URL. """
         def link_func(course, reverse_func):
             """ Returns a function that returns the course tab's URL. """
-            return reverse_func("tab_fragment_container", args=[course.id.to_deprecated_string(), self.type])
+            return reverse_func("course_tab_view", args=[course.id.to_deprecated_string(), self.type])
 
         return link_func
 
@@ -265,12 +266,34 @@ class TabFragmentViewMixin(object):
         """
         return "tab/" + self.type
 
+    @property
+    def view_name(self):
+        """
+        Returns the view name for this tab.
+        """
+
+    @property
+    def fragment_view(self):
+        """
+        Renders the web fragment for this tab.
+        """
+        if not self._fragment_view:
+            self._fragment_view = get_storage_class(self.fragment_view_name)()
+        return self._fragment_view
+
+    def render_json(self, request, course):
+        """
+        Renders the JSON representation of this tab's web fragment.
+        """
+        fragment = self.render_fragment(request, course)
+        json = fragment.to_dict()
+        return JsonResponse(json)
+
     def render_fragment(self, request, course):
         """
         Renders the web fragment for this tab.
         """
-        fragment_view = get_storage_class(self.component_name)()
-        return fragment_view.render_fragment(request, course_id=course.id.to_deprecated_string())
+        return self.fragment_view.render_fragment(request, course_id=unicode(course.id))
 
 
 class StaticTab(CourseTab):

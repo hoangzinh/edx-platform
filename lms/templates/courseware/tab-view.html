@@ -8,8 +8,15 @@ from openedx.core.djangolib.markup import HTML
 %>
 
 <%inherit file="/main.html" />
-<%block name="bodyclass">view-in-course view-statictab ${course.css_class or ''}</%block>
 <%namespace name='static' file='/static_content.html'/>
+
+% if tab['body_class']:
+<%block name="bodyclass"><% tab['body_class'] %></%block>
+% endif
+
+% if tab['online_help_token']:
+<%def name="online_help_token()"><% return "${tab['online_help_token']}" %></%def>
+% endif
 
 <%block name="headextra">
 ${HTML(fragment.head_html())}

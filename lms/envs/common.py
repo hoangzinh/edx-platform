@@ -545,6 +545,9 @@ TEMPLATES = [
 ]
 DEFAULT_TEMPLATE_ENGINE = TEMPLATES[0]
 
+# The template used to render a web fragment as a standalone page
+STANDALONE_FRAGMENT_VIEW_TEMPLATE = 'fragment-view-chromeless.html'
+
 ###############################################################################################
 
 # use the ratelimit backend to prevent brute force attacks
@@ -1936,8 +1939,9 @@ INSTALLED_APPS = (
     'pipeline',
     'static_replace',
 
-    # For Django web fragment views
+    # For user interface plugins
     'web_fragments',
+    'openedx.core.djangoapps.plugin_api',
 
     # For content serving
     'openedx.core.djangoapps.contentserver',

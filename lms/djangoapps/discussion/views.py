@@ -2,12 +2,10 @@
 Views handling read (GET) requests for the Discussion tab and inline discussions.
 """
 
-from abc import ABCMeta, abstractmethod
 from functools import wraps
 import logging
 from sets import Set
 
-from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.context_processors import csrf
 from django.core.urlresolvers import reverse
@@ -15,20 +13,20 @@ from django.contrib.auth.models import User
 from django.http import Http404, HttpResponseBadRequest
 from django.shortcuts import render_to_response
 from django.template.loader import render_to_string
-from django.templatetags.static import static
 from django.utils.translation import get_language_bidi
 from django.views.decorators.http import require_GET
 import newrelic.agent
 
-from web_fragments.views import FragmentView
 from web_fragments.fragment import Fragment
 
 from courseware.courses import get_course_with_access
+from courseware.views.views import CourseTabView
 from openedx.core.djangoapps.course_groups.cohorts import (
     is_course_cohorted,
     get_cohort_id,
     get_course_cohorts,
 )
+from openedx.core.djangoapps.plugin_api.views import EdxFragmentView
 
 from courseware.access import has_access
 from student.models import CourseEnrollment
@@ -255,11 +253,9 @@ def forum_form_discussion(request, course_key):
             'corrected_text': query_params['corrected_text'],
         })
     else:
-        context = _create_discussion_board_context(request, course_key, nr_transaction)
-        course_id = course.id.to_deprecated_string()
-        context["fragment"] = DiscussionBoardFragmentView().render_fragment(request, course_id=course_id)
-        # print "start rendering.."
-        return render_to_response('discussion/discussion_board.html', context)
+        course_id = unicode(course.id)
+        tab_view = CourseTabView()
+        return tab_view.get(request, course_id, 'discussion')
 
 
 @require_GET
@@ -620,85 +616,7 @@ def followed_threads(request, course_key, user_id):
         raise Http404
 
 
-class LmsFragmentView(FragmentView):
-    """
-    The base class of all edx-platform component views.
-    """
-    USES_PATTERN_LIBRARY = True
-
-    @staticmethod
-    def get_css_dependencies(group):
-        """
-        Returns list of CSS dependencies belonging to `group` in settings.PIPELINE_JS.
-
-        Respects `PIPELINE_ENABLED` setting.
-        """
-        if settings.PIPELINE_ENABLED:
-            return [settings.PIPELINE_CSS[group]['output_filename']]
-        else:
-            return settings.PIPELINE_CSS[group]['source_filenames']
-
-    @staticmethod
-    def get_js_dependencies(group):
-        """
-        Returns list of JS dependencies belonging to `group` in settings.PIPELINE_JS.
-
-        Respects `PIPELINE_ENABLED` setting.
-        """
-        if settings.PIPELINE_ENABLED:
-            return [settings.PIPELINE_JS[group]['output_filename']]
-        else:
-            return settings.PIPELINE_JS[group]['source_filenames']
-
-    @abstractmethod
-    def vendor_js_dependencies(self, request, *args, **kwargs):
-        """
-        Returns list of the vendor JS files that this view depends on.
-        """
-        return []
-
-    @abstractmethod
-    def js_dependencies(self, request, *args, **kwargs):
-        """
-        Returns list of the JavaScript files that this view depends on.
-        """
-        return []
-
-    @abstractmethod
-    def css_dependencies(self, request, *args, **kwargs):
-        """
-        Returns list of the CSS files that this view depends on.
-        """
-        return []
-
-    def add_resource_urls(self, fragment):
-        """
-        Adds URLs for JS and CSS resources that this XBlock depends on to `fragment`.
-        """
-        # Head dependencies
-        for vendor_js_file in self.vendor_js_dependencies():
-            fragment.add_resource_url(static(vendor_js_file), "application/javascript", "head")
-
-        for css_file in self.css_dependencies():
-            fragment.add_css_url(static(css_file))
-
-        # Body dependencies
-        for js_file in self.js_dependencies():
-            fragment.add_javascript_url(static(js_file))
-
-    def render_standalone_html(self, fragment):
-        """
-        Renders a standalone version of this fragment.
-        """
-        context = {
-            'settings': settings,
-            'fragment': fragment,
-            'uses-pattern-library': self.USES_PATTERN_LIBRARY,
-        }
-        return render_to_response('fragment-view-chromeless.html', context)
-
-
-class DiscussionBoardFragmentView(LmsFragmentView):
+class DiscussionBoardFragmentView(EdxFragmentView):
     """
     Component implementation of the discussion board.
     """
