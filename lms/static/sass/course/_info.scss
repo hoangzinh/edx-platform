@@ -58,18 +58,19 @@ div.info-wrapper {
 
     div.upgrade-banner {
       // This banner uses the Pattern Library's defined variables
-      background-color: $white;
-      border: 1px solid $uxpl-gray-background;
       @include border-left(0px);
+
+      background: $homepage-background;
+      border: 1px solid $uxpl-gray-background;
       width: 100%;
       display: table;
 
-      .green-border {
-        width: 10px;
+      .notification-color-border {
+        width: 10px; //Value defined by UX team
         height: 100%;
         margin: 0;
         vertical-align: top;
-        background: $uxpl-green-base;
+        background: $notification-highlight-border-color;
         display: table-cell;
       }
 
@@ -78,20 +79,20 @@ div.info-wrapper {
         margin: $baseline;
         display: inline-block;
         img {
-          max-height: 50px;
+          max-height: 50px; //Defined by UX Team, currently only used here
         }
       }
 
       .upgrade-msg {
         vertical-align: top;
-        margin: $baseline 0 $baseline 0;
+        margin: $baseline 0;
         display: inline-block;
 
-        h4 {
+        .msg-title {
           font-weight: font-weight(semi-bold);
           font-size: font-size(large);
         }
-        p {
+        .view-verified-info {
           margin-top: $baseline / 4;
           font-weight: font-weight(normal);
           font-size: font-size(base);
@@ -105,10 +106,10 @@ div.info-wrapper {
       .upgrade-banner-button {
         vertical-align: top;
         display: inline-block;
-        margin: $baseline $baseline*2 $baseline $baseline*2;
+        margin: $baseline $baseline*2;
       }
 
-      .btn-brand-green {
+      .btn-upgrade {
         @extend %btn-shims;
 
         border-color: $uxpl-green-base;
@@ -120,9 +121,9 @@ div.info-wrapper {
         &.is-hovered,
         &:focus,
         &.is-focused {
-          border-color: $uxpl-green-base;
-          background-color: $uxpl-green-base;
-          color: $btn-brand-color;
+          border-color: $btn-upgrade-focus-border-color;
+          background-color: $btn-upgrade-focus-background;
+          color: $btn-upgrade-focus-color;
         }
 
         // STATE: is pressed or active
@@ -130,9 +131,9 @@ div.info-wrapper {
         &:visited,
         &.is-pressed,
         &.is-active {
-          border-color: $uxpl-green-base;
-          background: $uxpl-green-base;
-          color: $btn-brand-focus-color;
+          border-color: $btn-upgrade-active-border-color;
+          background: $btn-upgrade-active-background;
+          color: $btn-brand-color;
         }
 
         // STATE: is disabled
@@ -140,7 +141,7 @@ div.info-wrapper {
         &.is-disabled {
           border-color: $btn-disabled-border-color;
           background: $btn-brand-disabled-background;
-          color: $btn-brand-disabled-color;
+          color: $btn-brand-color;
         }
       }
     }

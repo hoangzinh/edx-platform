@@ -178,6 +178,22 @@ $btn-brand-active-background:             $uxpl-blue-base !default;
 $btn-brand-disabled-background:           #f2f3f3 !default;
 $btn-brand-disabled-color:                #676666 !default;
 
+// Upgrade button
+$btn-upgrade-border-color:                $uxpl-green-base !default;
+$btn-upgrade-background:                  $uxpl-green-base !default;
+$btn-upgrade-color:                       $uxpl-green-base !default;
+$btn-upgrade-focus-color:                 $uxpl-green-base !default;
+$btn-upgrade-focus-border-color:          $uxpl-green-base !default;
+$btn-upgrade-focus-background:            $uxpl-green-base !default;
+$btn-upgrade-active-border-color:         $uxpl-green-base !default;
+$btn-upgrade-active-background:           $uxpl-green-base !default;
+
+//// Notifications
+
+// Upgrade
+
+$notification-highlight-border-color:      $uxpl-green-base !default;
+
 // ----------------------------
 // #SETTINGS
 // ----------------------------
