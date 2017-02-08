@@ -1056,12 +1056,12 @@ class InlineDiscussionTest(UniqueCourseTest, DiscussionResponsePaginationTestMix
 
     def test_add_post_not_present_if_discussion_blackout_period_started(self):
         """
-        If discussion blackout period has started Add a post link should not appear
+        If discussion blackout period has started Add a post link should not appear.
         """
         self.start_discussion_blackout_period()
         self.browser.refresh()
         self.discussion_page.expand_discussion()
-        self.assertFalse(self.discussion_page.q(css='.new-post-btn').present)
+        self.assertFalse(self.discussion_page.new_post_button_visible())
 
     def test_initial_render(self):
         self.assertFalse(self.discussion_page.is_discussion_expanded())
